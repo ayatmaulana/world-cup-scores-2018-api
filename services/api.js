@@ -65,6 +65,19 @@ class Api {
 
                     if(item.away_team == "England")
                         item.away_team = "United Kingdom"
+
+                    if(item.home_team == "IR Iran")
+                        item.home_team = "Iran"
+
+                    if(item.away_team == "IR Iran")
+                        item.away_team = "Iran"
+
+                    if(item.home_team == "Korea Republic")
+                        item.home_team = "Korea"
+
+                    if(item.away_team == "Korea Republic")
+                        item.away_team = "Korea"
+
                     return item;
                 })
                 .map(item => {
