@@ -82,7 +82,7 @@ class Api {
                 })
                 .map(item => {
 
-                    item.datatime = Moment(item.datatime).format("MMM D, YYYY - hh:mm A")
+                    item.datetime = Moment(item.datatime).format("MMM D, YYYY - hh:mm A")
 
                 item.home_code = CountryNames.getCode(item.home_team)
                 item.away_code = CountryNames.getCode(item.away_team)
