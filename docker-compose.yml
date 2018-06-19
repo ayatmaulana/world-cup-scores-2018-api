@@ -1,0 +1,25 @@
+version: "3"
+networks:
+        app-tier:
+                driver: bridge
+                      
+services:
+        app:
+                build: .
+                links:
+                        - redis
+                depends_on:
+                        - redis
+                networks:
+                        - app-tier
+
+        redis:
+                image: redis:alpine
+                command: ["redis-server", "--appendonly", "yes"]
+                environment:
+                        - ALLOW_EMPTY_PASSWORD=yes
+                ports:
+                        - '6379:6379'
+                restart: always
+                networks:
+                         - app-tier
