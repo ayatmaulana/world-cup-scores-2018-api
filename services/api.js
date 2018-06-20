@@ -51,6 +51,28 @@ class Api {
         } 
     }
 
+    parseStrangeCountry(data){
+
+        switch(data){
+            case "England":
+                data = "United Kingdom"
+                break
+
+            case "IR Iran":
+                data = "Iran"
+                break
+
+            case "Korea Republic":
+                data = "Korea"
+                break
+
+            default:
+                data = data
+        }
+
+        return data
+     }
+
     async main(){
         try{
             let getData = await this.hit(ENDPOINT.MAIN, {}, RedisKey.MAIN)
@@ -63,33 +85,15 @@ class Api {
 
             const newData = _.sortBy(dataExtract, 'datetime')
                 .map(item => {
-                    if(item.home_team == "England")
-                        item.home_team = "United Kingdom"
-
-                    if(item.away_team == "England")
-                        item.away_team = "United Kingdom"
-
-                    if(item.home_team == "IR Iran")
-                        item.home_team = "Iran"
-
-                    if(item.away_team == "IR Iran")
-                        item.away_team = "Iran"
-
-                    if(item.home_team == "Korea Republic")
-                        item.home_team = "Korea"
-
-                    if(item.away_team == "Korea Republic")
-                        item.away_team = "Korea"
-
+                    item.home_team = this.parseStrangeCountry(item.home_team)
+                    item.away_team = this.parseStrangeCountry(item.away_team)
                     return item;
                 })
                 .map(item => {
-
                     item.datetime = Moment(item.datatime).format("MMM D, YYYY - hh:mm A")
-
-                item.home_code = CountryNames.getCode(item.home_team)
-                item.away_code = CountryNames.getCode(item.away_team)
-                return item
+                    item.home_code = CountryNames.getCode(item.home_team)
+                    item.away_code = CountryNames.getCode(item.away_team)
+                    return item
             })
 
             return newData
@@ -103,10 +107,42 @@ class Api {
             let getData = await this.hit( ENDPOINT.GROUP, {}, RedisKey.GROUP)
             let data = getData.data
 
-            if(groupName)
+            const extract = (iterable) => {
+                var countries = []
+                for (let i of Object.values(iterable)){
+                    if(typeof i != "string"){
+                        i.display_name = this.parseStrangeCountry(i.display_name)
+                        i.code = CountryNames.getCode(i.display_name)
+                        countries.push(i)
+                    }
+                }
+
+                return {
+                    title: iterable.title,
+                    countries
+                }
+            }
+
+            // if has group name
+            if(groupName) {
                 data = Collect(data).firstWhere("title", groupName)
 
-            return data
+                if(!data) {
+                    return {}
+                }
+
+                data = extract(data)
+                return data
+            }
+
+            //if dont have group name
+            var final = []
+            for (let i of data)
+            {
+                final.push(extract(i))
+            }
+
+            return final
         } catch(e){
             throw new Error(e)
         }
