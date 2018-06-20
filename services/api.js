@@ -8,7 +8,7 @@ const Moment = require('moment')
 
 const ENDPOINT = {
     MAIN: "/fifa/fixtures",
-    GROUP: "fifa/grouptable"
+    GROUP: "/fifa/grouptable"
 }
 
 const RedisKey = {
