@@ -1,16 +1,19 @@
 const Axios = require('axios')
 const CountryNames = require('countrynames')
 const _ = require('lodash')
+const Collect = require('collect.js')
 const RedisClient = require('./redis')
 const Moment = require('moment')
 
 
 const ENDPOINT = {
-    MAIN: "/fifa/fixtures"
+    MAIN: "/fifa/fixtures",
+    GROUP: "fifa/grouptable"
 }
 
 const RedisKey = {
-    MAIN: "@ayatmaulana:main"
+    MAIN: "@ayatmaulana:main",
+    GROUP: "@ayatmaulana:group"
 }
 
 class Api {
@@ -19,13 +22,13 @@ class Api {
         this.baseUrl = "https://fifa-2018-apis.herokuapp.com"
     }
 
-    async hit(endpoint, params){
+    async hit(endpoint, params, redisKey){
         try {
-            let isExistInRedis = await this.checkInRedis( RedisKey.MAIN )
+            let isExistInRedis = await this.checkInRedis( redisKey )
             if( isExistInRedis == false ) {
                 let hit = await Axios(this.baseUrl + endpoint)       
                 let data = hit.data
-                await RedisClient.setAsync( RedisKey.MAIN, JSON.stringify(data))
+                await RedisClient.setAsync( redisKey, JSON.stringify(data))
                 return hit.data
             }
 
@@ -50,7 +53,7 @@ class Api {
 
     async main(){
         try{
-            let getData = await this.hit(ENDPOINT.MAIN)
+            let getData = await this.hit(ENDPOINT.MAIN, {}, RedisKey.MAIN)
             let data = getData.data.group_stages
             
             var dataExtract = []
@@ -94,6 +97,20 @@ class Api {
             throw new Error(e)
         }
     }   
+
+    async group(groupName = null){
+        try {
+            let getData = await this.hit( ENDPOINT.GROUP, {}, RedisKey.GROUP)
+            let data = getData.data
+
+            if(groupName)
+                data = Collect(data).firstWhere("title", groupName)
+
+            return data
+        } catch(e){
+            throw new Error(e)
+        }
+    }
 
 }
 
